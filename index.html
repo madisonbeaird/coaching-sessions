@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sessions">
+<meta name="theme-color" content="#0f1923">
+<title>Coaching Sessions</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --navy: #0f1923;
+  --navy2: #1a2736;
+  --navy3: #243347;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #f0f2f5;
+  --text2: #8fa0b0;
+  --text3: #566778;
+  --amber: #f0a500;
+  --amber-bg: rgba(240,165,0,0.12);
+  --amber-border: rgba(240,165,0,0.3);
+  --green: #2ecc8f;
+  --green-bg: rgba(46,204,143,0.1);
+  --green-border: rgba(46,204,143,0.3);
+  --p1: #3b82f6;
+  --p1-bg: rgba(59,130,246,0.12);
+  --p3: #14b8a6;
+  --p3-bg: rgba(20,184,166,0.12);
+  --red: #ef4444;
+  --red-bg: rgba(239,68,68,0.1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--navy); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+body { padding-bottom: env(safe-area-inset-bottom); }
+.hdr { position: sticky; top: 0; z-index: 50; background: var(--navy); border-bottom: 0.5px solid var(--border); padding: 14px 16px 12px; display: flex; align-items: center; justify-content: space-between; }
+.hdr-title { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+.hdr-sub { font-size: 11px; color: var(--text2); margin-top: 1px; }
+.swing-list { padding: 12px 12px 100px; display: flex; flex-direction: column; gap: 10px; }
+.swing-card { background: var(--navy2); border: 0.5px solid var(--border); border-radius: 14px; overflow: hidden; }
+.swing-card.active { border-color: var(--border2); }
+.swing-hdr { display: flex; align-items: center; gap: 10px; padding: 13px 14px; cursor: pointer; user-select: none; }
+.panel-badge { font-size: 11px; font-weight: 700; letter-spacing: .04em; padding: 3px 8px; border-radius: 5px; flex-shrink: 0; }
+.p1-badge { background: var(--p1-bg); color: var(--p1); border: 0.5px solid rgba(59,130,246,0.25); }
+.p3-badge { background: var(--p3-bg); color: var(--p3); border: 0.5px solid rgba(20,184,166,0.25); }
+.swing-dates { flex: 1; font-size: 13px; color: var(--text2); }
+.swing-dates strong { color: var(--text); font-weight: 500; }
+.active-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; box-shadow: 0 0 6px var(--green); }
+.swing-chevron { color: var(--text3); font-size: 16px; transition: transform .2s; flex-shrink: 0; }
+.swing-chevron.open { transform: rotate(180deg); }
+.swing-summary { padding: 0 14px 13px; display: flex; gap: 8px; flex-wrap: wrap; }
+.sum-chip { font-size: 11px; padding: 3px 8px; border-radius: 5px; border: 0.5px solid var(--border); color: var(--text2); }
+.sum-chip.warn { background: var(--amber-bg); border-color: var(--amber-border); color: var(--amber); }
+.sum-chip.good { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+.swing-body { display: none; border-top: 0.5px solid var(--border); }
+.swing-body.open { display: block; }
+.swing-stats { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 0.5px solid var(--border); }
+.stat-item { padding: 12px 0; text-align: center; border-right: 0.5px solid var(--border); }
+.stat-item:last-child { border-right: none; }
+.stat-val { font-size: 22px; font-weight: 600; }
+.stat-val.amber { color: var(--amber); }
+.stat-val.green { color: var(--green); }
+.stat-lbl { font-size: 10px; color: var(--text3); margin-top: 2px; text-transform: uppercase; letter-spacing: .04em; }
+.day-block { border-bottom: 0.5px solid var(--border); }
+.day-block:last-child { border-bottom: none; }
+.day-hdr { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; background: var(--navy3); }
+.day-label { display: flex; align-items: baseline; gap: 7px; }
+.day-date { font-size: 13px; font-weight: 600; }
+.day-dow { font-size: 11px; color: var(--text3); }
+.xero-btn { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; border: 0.5px solid var(--border2); background: transparent; cursor: pointer; font-size: 11px; font-weight: 500; color: var(--text2); transition: all .15s; }
+.xero-btn.done { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+.xero-btn i { font-size: 13px; }
+.person-row { display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-top: 0.5px solid var(--border); cursor: pointer; transition: background .1s; }
+.person-row:active { background: var(--navy3); }
+.person-name { flex: 1; font-size: 13px; color: var(--text); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v4-pill { font-size: 10px; font-weight: 600; padding: 3px 7px; border-radius: 4px; flex-shrink: 0; white-space: nowrap; }
+.v4-done { background: var(--green-bg); color: var(--green); border: 0.5px solid var(--green-border); }
+.v4-pending { background: var(--amber-bg); color: var(--amber); border: 0.5px solid var(--amber-border); }
+.pit-pill { font-size: 10px; font-weight: 500; padding: 3px 7px; border-radius: 4px; flex-shrink: 0; white-space: nowrap; background: rgba(255,255,255,0.05); color: var(--text2); border: 0.5px solid var(--border); }
+.row-chev { color: var(--text3); font-size: 13px; flex-shrink: 0; }
+.add-person { display: flex; align-items: center; gap: 6px; padding: 9px 14px; border-top: 0.5px solid var(--border); color: var(--text3); font-size: 12px; cursor: pointer; transition: color .15s; }
+.add-person:active { color: var(--text2); }
+.add-person i { font-size: 14px; }
+.empty { text-align: center; padding: 60px 24px; color: var(--text3); }
+.empty i { font-size: 40px; display: block; margin-bottom: 12px; }
+.empty p { font-size: 14px; line-height: 1.5; }
+.fab { position: fixed; bottom: calc(24px + env(safe-area-inset-bottom)); right: 16px; z-index: 40; display: flex; align-items: center; gap: 8px; background: var(--amber); color: #0f1923; border: none; border-radius: 28px; padding: 13px 20px; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 16px rgba(240,165,0,0.35); transition: transform .1s, box-shadow .1s; }
+.fab:active { transform: scale(.96); box-shadow: 0 2px 8px rgba(240,165,0,0.25); }
+.fab i { font-size: 18px; }
+.modal-overlay { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,0.6); display: none; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--navy2); border-radius: 20px 20px 0 0; width: 100%; max-width: 500px; padding: 20px 20px calc(28px + env(safe-area-inset-bottom)); max-height: 90vh; overflow-y: auto; border-top: 0.5px solid var(--border2); }
+.modal-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 18px; }
+.modal h2 { font-size: 16px; font-weight: 600; margin-bottom: 18px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 11px; font-weight: 600; color: var(--text2); margin-bottom: 7px; text-transform: uppercase; letter-spacing: .05em; }
+.form-group input, .form-group select { width: 100%; padding: 11px 14px; font-size: 15px; background: var(--navy3); border: 0.5px solid var(--border2); border-radius: 10px; color: var(--text); -webkit-appearance: none; appearance: none; }
+.form-group select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23566778' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+.form-group input:focus, .form-group select:focus { outline: none; border-color: var(--amber); }
+.tog-row { display: flex; gap: 8px; }
+.tog-btn { flex: 1; padding: 11px 0; border: 0.5px solid var(--border2); border-radius: 10px; background: var(--navy3); color: var(--text2); font-size: 14px; cursor: pointer; text-align: center; transition: all .12s; }
+.tog-btn.t-yes { background: var(--green-bg); border-color: var(--green-border); color: var(--green); font-weight: 600; }
+.tog-btn.t-no { background: var(--amber-bg); border-color: var(--amber-border); color: var(--amber); font-weight: 600; }
+.panel-row { display: flex; gap: 8px; }
+.panel-btn { flex: 1; padding: 12px 0; border-radius: 10px; border: 0.5px solid var(--border2); background: var(--navy3); color: var(--text2); font-size: 14px; font-weight: 500; cursor: pointer; text-align: center; transition: all .12s; }
+.panel-btn.sel-1 { background: var(--p1-bg); border-color: rgba(59,130,246,0.4); color: var(--p1); font-weight: 700; }
+.panel-btn.sel-3 { background: var(--p3-bg); border-color: rgba(20,184,166,0.4); color: var(--p3); font-weight: 700; }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+.btn-save { flex: 1; padding: 13px; border-radius: 10px; border: none; background: var(--amber); color: #0f1923; font-size: 15px; font-weight: 700; cursor: pointer; }
+.btn-cancel { padding: 13px 18px; border-radius: 10px; border: 0.5px solid var(--border2); background: transparent; color: var(--text2); font-size: 15px; cursor: pointer; }
+.btn-delete { padding: 13px 14px; border-radius: 10px; border: 0.5px solid rgba(239,68,68,0.3); background: var(--red-bg); color: var(--red); font-size: 15px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div>
+    <div class="hdr-title">Coaching Sessions</div>
+    <div class="hdr-sub" id="hdr-sub">Roy Hill · AHS Operations</div>
+  </div>
+  <div id="hdr-stats" style="text-align:right;font-size:11px;color:var(--text2)"></div>
+</div>
+<div class="swing-list" id="swing-list"></div>
+<button class="fab" id="fab-btn">
+  <i class="ti ti-plus"></i> New swing
+</button>
+<div class="modal-overlay" id="modal-swing">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>New swing</h2>
+    <div class="form-group">
+      <label>Panel</label>
+      <div class="panel-row">
+        <button class="panel-btn" id="pb1" onclick="selPanel('1')">Panel 1</button>
+        <button class="panel-btn" id="pb3" onclick="selPanel('3')">Panel 3</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Start date (day 1 of 8)</label>
+      <input type="date" id="sw-start">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-swing')">Cancel</button>
+      <button class="btn-save" onclick="saveSwing()">Create swing</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-person">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2 id="pm-title">Add session</h2>
+    <div class="form-group">
+      <label>Person / LV</label>
+      <input type="text" id="pm-name" placeholder="e.g. Aaron Keeble PS" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>V4 submitted?</label>
+      <div class="tog-row">
+        <button class="tog-btn" id="v4-yes" onclick="setV4(true)">Yes</button>
+        <button class="tog-btn" id="v4-no" onclick="setV4(false)">Not yet</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Pit / Panel</label>
+      <select id="pm-pit">
+        <option value="">— select —</option>
+        <option>Zulu 1</option><option>Bravo 1</option><option>Delta 1</option><option>Sierra 1</option>
+        <option>Zulu 3</option><option>Bravo 3</option><option>Delta 3</option><option>Sierra 3</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-person')">Cancel</button>
+      <button class="btn-delete" id="pm-delete" style="display:none" onclick="deletePerson()"><i class="ti ti-trash"></i></button>
+      <button class="btn-save" onclick="savePerson()">Save</button>
+    </div>
+  </div>
+</div>
+<script>
+const KEY = 'rh_cs_v3';
+let data = { swings: [] };
+let ctx = {};
+let v4val = null;
+let selPanelVal = null;
+function load() {
+  try { data = JSON.parse(localStorage.getItem(KEY) || 'null') || { swings: [] }; }
+  catch(e) { data = { swings: [] }; }
+  if (!data.swings) data.swings = [];
+}
+function save() { localStorage.setItem(KEY, JSON.stringify(data)); }
+function nextId() {
+  let max = 0;
+  data.swings.forEach(sw => sw.days.forEach(d => d.people.forEach(p => { if(p.id > max) max = p.id; })));
+  return max + 1;
+}
+function addDays(dateStr, n) {
+  const d = new Date(dateStr + 'T00:00');
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0,10);
+}
+function fmt(d) { return new Date(d+'T00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short'}); }
+function dow(d) { return new Date(d+'T00:00').toLocaleDateString('en-AU',{weekday:'short'}); }
+function swingRange(sw) {
+  const s = sw.days[0]?.date, e = sw.days[sw.days.length-1]?.date;
+  return s && e ? s + ' to ' + e : '—';
+}
+function render() {
+  const list = document.getElementById('swing-list');
+  const sorted = [...data.swings].sort((a,b) => (a.days[0]?.date||'').localeCompare(b.days[0]?.date||''));
+  if (!sorted.length) {
+    list.innerHTML = '<div class="empty"><i class="ti ti-clipboard-list"></i><p>No swings yet.<br>Tap <strong>New swing</strong> to get started.</p></div>';
+    document.getElementById('hdr-sub').textContent = 'Roy Hill · AHS Operations';
+    return;
+  }
+  const activeId = sorted[sorted.length-1].id;
+  let html = '';
+  const display = [...sorted].reverse();
+  display.forEach((sw) => {
+    const isActive = sw.id === activeId;
+    const people = sw.days.flatMap(d => d.people);
+    const total = people.length;
+    const submitted = people.filter(p => p.v4).length;
+    const pending = total - submitted;
+    const xeroDone = sw.days.filter(d => d.xero).length;
+    const isOpen = isActive || !!ctx['open_'+sw.id];
+    const badgeCls = sw.panel === '1' ? 'p1-badge' : 'p3-badge';
+    html += '<div class="swing-card' + (isActive?' active':'') + '" id="sc-' + sw.id + '">';
+    html += '<div class="swing-hdr" onclick="toggleSwing(' + sw.id + ')">' +
+      '<span class="panel-badge ' + badgeCls + '">PANEL ' + sw.panel + '</span>' +
+      '<div class="swing-dates"><strong>' + swingRange(sw) + '</strong></div>' +
+      (isActive ? '<div class="active-dot"></div>' : '') +
+      '<i class="ti ti-chevron-down swing-chevron' + (isOpen?' open':'') + '"></i>' +
+      '</div>';
+    html += '<div class="swing-summary">' +
+      '<span class="sum-chip">' + total + ' session' + (total!==1?'s':'') + '</span>' +
+      '<span class="sum-chip ' + (submitted===total&&total>0?'good':'') + '">' + submitted + ' V4 submitted</span>' +
+      (pending > 0 ? '<span class="sum-chip warn">' + pending + ' pending</span>' : '') +
+      '<span class="sum-chip ' + (xeroDone===8?'good':'') + '">Xero ' + xeroDone + '/8</span>' +
+      '</div>';
+    html += '<div class="swing-body' + (isOpen?' open':'') + '" id="sb-' + sw.id + '">';
+    html += '<div class="swing-stats">' +
+      '<div class="stat-item"><div class="stat-val">' + total + '</div><div class="stat-lbl">Sessions</div></div>' +
+      '<div class="stat-item"><div class="stat-val ' + (pending>0?'amber':'green') + '">' + pending + '</div><div class="stat-lbl">V4 pending</div></div>' +
+      '<div class="stat-item"><div class="stat-val ' + (xeroDone===8?'green':'') + '">' + xeroDone + '/8</div><div class="stat-lbl">Xero</div></div>' +
+      '</div>';
+    sw.days.forEach(day => {
+      html += '<div class="day-block">' +
+        '<div class="day-hdr">' +
+          '<div class="day-label">' +
+            '<span class="day-date">' + fmt(day.date) + '</span>' +
+            '<span class="day-dow">' + dow(day.date) + '</span>' +
+          '</div>' +
+          '<button class="xero-btn' + (day.xero?' done':'') + '" onclick="toggleXero(' + sw.id + ','' + day.date + '')">' +
+            '<i class="ti ti-' + (day.xero?'check':'circle') + '"></i>' +
+            'Xero' + (day.xero?' done':'') +
+          '</button>' +
+        '</div>';
+      day.people.forEach(p => {
+        html += '<div class="person-row" onclick="openEdit(' + sw.id + ','' + day.date + '',' + p.id + ')">' +
+          '<span class="person-name">' + (p.name||'Unnamed') + '</span>' +
+          '<span class="v4-pill ' + (p.v4?'v4-done':'v4-pending') + '">' + (p.v4?'V4 ✓':'V4 pending') + '</span>' +
+          (p.pit ? '<span class="pit-pill">' + p.pit + '</span>' : '') +
+          '<i class="ti ti-chevron-right row-chev"></i>' +
+          '</div>';
+      });
+      html += '<div class="add-person" onclick="openAdd(' + sw.id + ','' + day.date + '')">' +
+          '<i class="ti ti-plus"></i> Add person' +
+        '</div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  });
+  list.innerHTML = html;
+  const active = data.swings.find(s => s.id === activeId);
+  if (active) {
+    const ap = active.days.flatMap(d => d.people);
+    const pend = ap.filter(p => !p.v4).length;
+    document.getElementById('hdr-sub').textContent = 'Panel ' + active.panel + ' · ' + swingRange(active);
+    document.getElementById('hdr-stats').innerHTML = pend > 0
+      ? '<span style="color:var(--amber)">' + pend + ' V4 pending</span>'
+      : ap.length ? '<span style="color:var(--green)">All V4s in ✓</span>' : '';
+  }
+}
+function toggleSwing(id) { ctx['open_'+id] = !ctx['open_'+id]; render(); }
+function toggleXero(swId, date) {
+  const sw = data.swings.find(s => s.id === swId);
+  const day = sw?.days.find(d => d.date === date);
+  if (day) { day.xero = !day.xero; save(); render(); }
+}
+function openAdd(swId, date) {
+  ctx.swId = swId; ctx.date = date; ctx.personId = null;
+  v4val = null;
+  document.getElementById('pm-title').textContent = 'Add — ' + fmt(date);
+  document.getElementById('pm-name').value = '';
+  document.getElementById('pm-pit').value = '';
+  document.getElementById('pm-delete').style.display = 'none';
+  setV4UI(null);
+  openModal('modal-person');
+  setTimeout(() => document.getElementById('pm-name').focus(), 100);
+}
+function openEdit(swId, date, personId) {
+  const sw = data.swings.find(s => s.id === swId);
+  const day = sw?.days.find(d => d.date === date);
+  const person = day?.people.find(p => p.id === personId);
+  if (!person) return;
+  ctx.swId = swId; ctx.date = date; ctx.personId = personId;
+  v4val = person.v4;
+  document.getElementById('pm-title').textContent = person.name || 'Edit session';
+  document.getElementById('pm-name').value = person.name || '';
+  document.getElementById('pm-pit').value = person.pit || '';
+  document.getElementById('pm-delete').style.display = '';
+  setV4UI(person.v4);
+  openModal('modal-person');
+}
+function setV4(val) { v4val = val; setV4UI(val); }
+function setV4UI(val) {
+  document.getElementById('v4-yes').className = 'tog-btn' + (val === true ? ' t-yes' : '');
+  document.getElementById('v4-no').className = 'tog-btn' + (val === false ? ' t-no' : '');
+}
+function savePerson() {
+  const name = document.getElementById('pm-name').value.trim();
+  const pit = document.getElementById('pm-pit').value;
+  if (!name) { alert('Enter a name.'); return; }
+  if (v4val === null) { alert('Mark V4 as submitted or not yet.'); return; }
+  const sw = data.swings.find(s => s.id === ctx.swId);
+  const day = sw?.days.find(d => d.date === ctx.date);
+  if (!day) return;
+  if (ctx.personId) {
+    const p = day.people.find(x => x.id === ctx.personId);
+    if (p) { p.name = name; p.v4 = v4val; p.pit = pit; }
+  } else {
+    day.people.push({ id: nextId(), name, v4: v4val, pit });
+  }
+  save(); render(); closeModal('modal-person');
+}
+function deletePerson() {
+  if (!confirm('Remove this session?')) return;
+  const sw = data.swings.find(s => s.id === ctx.swId);
+  const day = sw?.days.find(d => d.date === ctx.date);
+  if (day) day.people = day.people.filter(p => p.id !== ctx.personId);
+  save(); render(); closeModal('modal-person');
+}
+function selPanel(p) {
+  selPanelVal = p;
+  document.getElementById('pb1').className = 'panel-btn' + (p==='1'?' sel-1':'');
+  document.getElementById('pb3').className = 'panel-btn' + (p==='3'?' sel-3':'');
+}
+function saveSwing() {
+  if (!selPanelVal) { alert('Select a panel.'); return; }
+  const start = document.getElementById('sw-start').value;
+  if (!start) { alert('Pick a start date.'); return; }
+  const days = [];
+  for (let i = 0; i < 8; i++) {
+    days.push({ date: addDays(start, i), xero: false, people: [] });
+  }
+  const maxId = data.swings.reduce((m,s) => Math.max(m, s.id), 0);
+  data.swings.push({ id: maxId+1, panel: selPanelVal, days });
+  save(); render(); closeModal('modal-swing');
+}
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+document.getElementById('fab-btn').onclick = () => {
+  selPanelVal = null;
+  document.getElementById('pb1').className = 'panel-btn';
+  document.getElementById('pb3').className = 'panel-btn';
+  document.getElementById('sw-start').value = new Date().toISOString().slice(0,10);
+  openModal('modal-swing');
+};
+load(); render();
+</script>
+</body>
+</html>
