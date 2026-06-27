@@ -13,26 +13,14 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
 :root {
-  --navy: #0f1923;
-  --navy2: #1a2736;
-  --navy3: #243347;
-  --border: rgba(255,255,255,0.08);
-  --border2: rgba(255,255,255,0.14);
-  --text: #f0f2f5;
-  --text2: #8fa0b0;
-  --text3: #566778;
-  --amber: #f0a500;
-  --amber-bg: rgba(240,165,0,0.12);
-  --amber-border: rgba(240,165,0,0.3);
-  --green: #2ecc8f;
-  --green-bg: rgba(46,204,143,0.1);
-  --green-border: rgba(46,204,143,0.3);
-  --p1: #3b82f6;
-  --p1-bg: rgba(59,130,246,0.12);
-  --p3: #14b8a6;
-  --p3-bg: rgba(20,184,166,0.12);
-  --red: #ef4444;
-  --red-bg: rgba(239,68,68,0.1);
+  --navy: #0f1923; --navy2: #1a2736; --navy3: #243347;
+  --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+  --text: #f0f2f5; --text2: #8fa0b0; --text3: #566778;
+  --amber: #f0a500; --amber-bg: rgba(240,165,0,0.12); --amber-border: rgba(240,165,0,0.3);
+  --green: #2ecc8f; --green-bg: rgba(46,204,143,0.1); --green-border: rgba(46,204,143,0.3);
+  --p1: #3b82f6; --p1-bg: rgba(59,130,246,0.12);
+  --p3: #14b8a6; --p3-bg: rgba(20,184,166,0.12);
+  --red: #ef4444; --red-bg: rgba(239,68,68,0.1);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; background: var(--navy); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
@@ -119,14 +107,12 @@ body { padding-bottom: env(safe-area-inset-bottom); }
 <div class="hdr">
   <div>
     <div class="hdr-title">Coaching Sessions</div>
-    <div class="hdr-sub" id="hdr-sub">Roy Hill · AHS Operations</div>
+    <div class="hdr-sub" id="hdr-sub">Roy Hill &middot; AHS Operations</div>
   </div>
   <div id="hdr-stats" style="text-align:right;font-size:11px;color:var(--text2)"></div>
 </div>
 <div class="swing-list" id="swing-list"></div>
-<button class="fab" id="fab-btn">
-  <i class="ti ti-plus"></i> New swing
-</button>
+<button class="fab" id="fab-btn"><i class="ti ti-plus"></i> New swing</button>
 <div class="modal-overlay" id="modal-swing">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -166,7 +152,7 @@ body { padding-bottom: env(safe-area-inset-bottom); }
     <div class="form-group">
       <label>Pit / Panel</label>
       <select id="pm-pit">
-        <option value="">— select —</option>
+        <option value="">-- select --</option>
         <option>Zulu 1</option><option>Bravo 1</option><option>Delta 1</option><option>Sierra 1</option>
         <option>Zulu 3</option><option>Bravo 3</option><option>Delta 3</option><option>Sierra 3</option>
       </select>
@@ -179,11 +165,11 @@ body { padding-bottom: env(safe-area-inset-bottom); }
   </div>
 </div>
 <script>
-const KEY = 'rh_cs_v3';
-let data = { swings: [] };
-let ctx = {};
-let v4val = null;
-let selPanelVal = null;
+var KEY = 'rh_cs_v3';
+var data = { swings: [] };
+var ctx = {};
+var v4val = null;
+var selPanelVal = null;
 function load() {
   try { data = JSON.parse(localStorage.getItem(KEY) || 'null') || { swings: [] }; }
   catch(e) { data = { swings: [] }; }
@@ -191,119 +177,125 @@ function load() {
 }
 function save() { localStorage.setItem(KEY, JSON.stringify(data)); }
 function nextId() {
-  let max = 0;
-  data.swings.forEach(sw => sw.days.forEach(d => d.people.forEach(p => { if(p.id > max) max = p.id; })));
+  var max = 0;
+  data.swings.forEach(function(sw) { sw.days.forEach(function(d) { d.people.forEach(function(p) { if(p.id > max) max = p.id; }); }); });
   return max + 1;
 }
 function addDays(dateStr, n) {
-  const d = new Date(dateStr + 'T00:00');
+  var d = new Date(dateStr + 'T00:00');
   d.setDate(d.getDate() + n);
   return d.toISOString().slice(0,10);
 }
 function fmt(d) { return new Date(d+'T00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short'}); }
 function dow(d) { return new Date(d+'T00:00').toLocaleDateString('en-AU',{weekday:'short'}); }
 function swingRange(sw) {
-  const s = sw.days[0]?.date, e = sw.days[sw.days.length-1]?.date;
-  return s && e ? s + ' to ' + e : '—';
+  var s = sw.days[0] && sw.days[0].date;
+  var e = sw.days[sw.days.length-1] && sw.days[sw.days.length-1].date;
+  return (s && e) ? (fmt(s) + ' - ' + fmt(e)) : '--';
 }
 function render() {
-  const list = document.getElementById('swing-list');
-  const sorted = [...data.swings].sort((a,b) => (a.days[0]?.date||'').localeCompare(b.days[0]?.date||''));
+  var list = document.getElementById('swing-list');
+  var sorted = data.swings.slice().sort(function(a,b){
+    var da = a.days[0] ? a.days[0].date : '';
+    var db = b.days[0] ? b.days[0].date : '';
+    return da.localeCompare(db);
+  });
   if (!sorted.length) {
-    list.innerHTML = '<div class="empty"><i class="ti ti-clipboard-list"></i><p>No swings yet.<br>Tap <strong>New swing</strong> to get started.</p></div>';
+    list.innerHTML = '<div class="empty"><i class="ti ti-clipboard-list"></i><p>No swings yet.<br>Tap <b>New swing</b> to get started.</p></div>';
     document.getElementById('hdr-sub').textContent = 'Roy Hill · AHS Operations';
     return;
   }
-  const activeId = sorted[sorted.length-1].id;
-  let html = '';
-  const display = [...sorted].reverse();
-  display.forEach((sw) => {
-    const isActive = sw.id === activeId;
-    const people = sw.days.flatMap(d => d.people);
-    const total = people.length;
-    const submitted = people.filter(p => p.v4).length;
-    const pending = total - submitted;
-    const xeroDone = sw.days.filter(d => d.xero).length;
-    const isOpen = isActive || !!ctx['open_'+sw.id];
-    const badgeCls = sw.panel === '1' ? 'p1-badge' : 'p3-badge';
+  var activeId = sorted[sorted.length-1].id;
+  var html = '';
+  var display = sorted.slice().reverse();
+  display.forEach(function(sw) {
+    var isActive = sw.id === activeId;
+    var people = [];
+    sw.days.forEach(function(d){ d.people.forEach(function(p){ people.push(p); }); });
+    var total = people.length;
+    var submitted = people.filter(function(p){ return p.v4; }).length;
+    var pending = total - submitted;
+    var xeroDone = sw.days.filter(function(d){ return d.xero; }).length;
+    var isOpen = isActive || !!ctx['open_'+sw.id];
+    var badgeCls = sw.panel === '1' ? 'p1-badge' : 'p3-badge';
     html += '<div class="swing-card' + (isActive?' active':'') + '" id="sc-' + sw.id + '">';
-    html += '<div class="swing-hdr" onclick="toggleSwing(' + sw.id + ')">' +
-      '<span class="panel-badge ' + badgeCls + '">PANEL ' + sw.panel + '</span>' +
-      '<div class="swing-dates"><strong>' + swingRange(sw) + '</strong></div>' +
-      (isActive ? '<div class="active-dot"></div>' : '') +
-      '<i class="ti ti-chevron-down swing-chevron' + (isOpen?' open':'') + '"></i>' +
-      '</div>';
-    html += '<div class="swing-summary">' +
-      '<span class="sum-chip">' + total + ' session' + (total!==1?'s':'') + '</span>' +
-      '<span class="sum-chip ' + (submitted===total&&total>0?'good':'') + '">' + submitted + ' V4 submitted</span>' +
-      (pending > 0 ? '<span class="sum-chip warn">' + pending + ' pending</span>' : '') +
-      '<span class="sum-chip ' + (xeroDone===8?'good':'') + '">Xero ' + xeroDone + '/8</span>' +
-      '</div>';
+    html += '<div class="swing-hdr" onclick="toggleSwing(' + sw.id + ')">';
+    html += '<span class="panel-badge ' + badgeCls + '">PANEL ' + sw.panel + '</span>';
+    html += '<div class="swing-dates"><strong>' + swingRange(sw) + '</strong></div>';
+    if (isActive) html += '<div class="active-dot"></div>';
+    html += '<i class="ti ti-chevron-down swing-chevron' + (isOpen?' open':'') + '"></i>';
+    html += '</div>';
+    html += '<div class="swing-summary">';
+    html += '<span class="sum-chip">' + total + ' session' + (total!==1?'s':'') + '</span>';
+    html += '<span class="sum-chip ' + (submitted===total&&total>0?'good':'') + '">' + submitted + ' V4 submitted</span>';
+    if (pending > 0) html += '<span class="sum-chip warn">' + pending + ' pending</span>';
+    html += '<span class="sum-chip ' + (xeroDone===8?'good':'') + '">Xero ' + xeroDone + '/8</span>';
+    html += '</div>';
     html += '<div class="swing-body' + (isOpen?' open':'') + '" id="sb-' + sw.id + '">';
-    html += '<div class="swing-stats">' +
-      '<div class="stat-item"><div class="stat-val">' + total + '</div><div class="stat-lbl">Sessions</div></div>' +
-      '<div class="stat-item"><div class="stat-val ' + (pending>0?'amber':'green') + '">' + pending + '</div><div class="stat-lbl">V4 pending</div></div>' +
-      '<div class="stat-item"><div class="stat-val ' + (xeroDone===8?'green':'') + '">' + xeroDone + '/8</div><div class="stat-lbl">Xero</div></div>' +
-      '</div>';
-    sw.days.forEach(day => {
-      html += '<div class="day-block">' +
-        '<div class="day-hdr">' +
-          '<div class="day-label">' +
-            '<span class="day-date">' + fmt(day.date) + '</span>' +
-            '<span class="day-dow">' + dow(day.date) + '</span>' +
-          '</div>' +
-          '<button class="xero-btn' + (day.xero?' done':'') + '" onclick="toggleXero(' + sw.id + ','' + day.date + '')">' +
-            '<i class="ti ti-' + (day.xero?'check':'circle') + '"></i>' +
-            'Xero' + (day.xero?' done':'') +
-          '</button>' +
-        '</div>';
-      day.people.forEach(p => {
-        html += '<div class="person-row" onclick="openEdit(' + sw.id + ','' + day.date + '',' + p.id + ')">' +
-          '<span class="person-name">' + (p.name||'Unnamed') + '</span>' +
-          '<span class="v4-pill ' + (p.v4?'v4-done':'v4-pending') + '">' + (p.v4?'V4 ✓':'V4 pending') + '</span>' +
-          (p.pit ? '<span class="pit-pill">' + p.pit + '</span>' : '') +
-          '<i class="ti ti-chevron-right row-chev"></i>' +
-          '</div>';
+    html += '<div class="swing-stats">';
+    html += '<div class="stat-item"><div class="stat-val">' + total + '</div><div class="stat-lbl">Sessions</div></div>';
+    html += '<div class="stat-item"><div class="stat-val ' + (pending>0?'amber':'green') + '">' + pending + '</div><div class="stat-lbl">V4 pending</div></div>';
+    html += '<div class="stat-item"><div class="stat-val ' + (xeroDone===8?'green':'') + '">' + xeroDone + '/8</div><div class="stat-lbl">Xero</div></div>';
+    html += '</div>';
+    sw.days.forEach(function(day) {
+      html += '<div class="day-block">';
+      html += '<div class="day-hdr">';
+      html += '<div class="day-label"><span class="day-date">' + fmt(day.date) + '</span><span class="day-dow">' + dow(day.date) + '</span></div>';
+      html += '<button class="xero-btn' + (day.xero?' done':'') + '" onclick="toggleXero(' + sw.id + ',\'' + day.date + '\')">';
+      html += '<i class="ti ti-' + (day.xero?'check':'circle') + '"></i> Xero' + (day.xero?' done':'');
+      html += '</button></div>';
+      day.people.forEach(function(p) {
+        html += '<div class="person-row" onclick="openEdit(' + sw.id + ',\'' + day.date + '\',' + p.id + ')">';
+        html += '<span class="person-name">' + (p.name||'Unnamed') + '</span>';
+        html += '<span class="v4-pill ' + (p.v4?'v4-done':'v4-pending') + '">' + (p.v4?'V4 done':'V4 pending') + '</span>';
+        if (p.pit) html += '<span class="pit-pill">' + p.pit + '</span>';
+        html += '<i class="ti ti-chevron-right row-chev"></i></div>';
       });
-      html += '<div class="add-person" onclick="openAdd(' + sw.id + ','' + day.date + '')">' +
-          '<i class="ti ti-plus"></i> Add person' +
-        '</div>';
+      html += '<div class="add-person" onclick="openAdd(' + sw.id + ',\'' + day.date + '\')">';
+      html += '<i class="ti ti-plus"></i> Add person</div>';
       html += '</div>';
     });
     html += '</div></div>';
   });
   list.innerHTML = html;
-  const active = data.swings.find(s => s.id === activeId);
+  var active = null;
+  for (var i=0; i<data.swings.length; i++) { if (data.swings[i].id===activeId) { active=data.swings[i]; break; } }
   if (active) {
-    const ap = active.days.flatMap(d => d.people);
-    const pend = ap.filter(p => !p.v4).length;
+    var ap = [];
+    active.days.forEach(function(d){ d.people.forEach(function(p){ ap.push(p); }); });
+    var pend = ap.filter(function(p){ return !p.v4; }).length;
     document.getElementById('hdr-sub').textContent = 'Panel ' + active.panel + ' · ' + swingRange(active);
     document.getElementById('hdr-stats').innerHTML = pend > 0
       ? '<span style="color:var(--amber)">' + pend + ' V4 pending</span>'
-      : ap.length ? '<span style="color:var(--green)">All V4s in ✓</span>' : '';
+      : (ap.length ? '<span style="color:var(--green)">All V4s in</span>' : '');
   }
 }
 function toggleSwing(id) { ctx['open_'+id] = !ctx['open_'+id]; render(); }
 function toggleXero(swId, date) {
-  const sw = data.swings.find(s => s.id === swId);
-  const day = sw?.days.find(d => d.date === date);
+  var sw = null;
+  for (var i=0; i<data.swings.length; i++) { if (data.swings[i].id===swId) { sw=data.swings[i]; break; } }
+  var day = null;
+  if (sw) { for (var j=0; j<sw.days.length; j++) { if (sw.days[j].date===date) { day=sw.days[j]; break; } } }
   if (day) { day.xero = !day.xero; save(); render(); }
 }
 function openAdd(swId, date) {
   ctx.swId = swId; ctx.date = date; ctx.personId = null;
   v4val = null;
-  document.getElementById('pm-title').textContent = 'Add — ' + fmt(date);
+  document.getElementById('pm-title').textContent = 'Add session';
   document.getElementById('pm-name').value = '';
   document.getElementById('pm-pit').value = '';
   document.getElementById('pm-delete').style.display = 'none';
   setV4UI(null);
   openModal('modal-person');
-  setTimeout(() => document.getElementById('pm-name').focus(), 100);
+  setTimeout(function(){ document.getElementById('pm-name').focus(); }, 100);
 }
 function openEdit(swId, date, personId) {
-  const sw = data.swings.find(s => s.id === swId);
-  const day = sw?.days.find(d => d.date === date);
-  const person = day?.people.find(p => p.id === personId);
+  var sw = null;
+  for (var i=0; i<data.swings.length; i++) { if (data.swings[i].id===swId) { sw=data.swings[i]; break; } }
+  var day = null;
+  if (sw) { for (var j=0; j<sw.days.length; j++) { if (sw.days[j].date===date) { day=sw.days[j]; break; } } }
+  var person = null;
+  if (day) { for (var k=0; k<day.people.length; k++) { if (day.people[k].id===personId) { person=day.people[k]; break; } } }
   if (!person) return;
   ctx.swId = swId; ctx.date = date; ctx.personId = personId;
   v4val = person.v4;
@@ -320,26 +312,31 @@ function setV4UI(val) {
   document.getElementById('v4-no').className = 'tog-btn' + (val === false ? ' t-no' : '');
 }
 function savePerson() {
-  const name = document.getElementById('pm-name').value.trim();
-  const pit = document.getElementById('pm-pit').value;
+  var name = document.getElementById('pm-name').value.trim();
+  var pit = document.getElementById('pm-pit').value;
   if (!name) { alert('Enter a name.'); return; }
   if (v4val === null) { alert('Mark V4 as submitted or not yet.'); return; }
-  const sw = data.swings.find(s => s.id === ctx.swId);
-  const day = sw?.days.find(d => d.date === ctx.date);
+  var sw = null;
+  for (var i=0; i<data.swings.length; i++) { if (data.swings[i].id===ctx.swId) { sw=data.swings[i]; break; } }
+  var day = null;
+  if (sw) { for (var j=0; j<sw.days.length; j++) { if (sw.days[j].date===ctx.date) { day=sw.days[j]; break; } } }
   if (!day) return;
   if (ctx.personId) {
-    const p = day.people.find(x => x.id === ctx.personId);
-    if (p) { p.name = name; p.v4 = v4val; p.pit = pit; }
+    for (var k=0; k<day.people.length; k++) {
+      if (day.people[k].id===ctx.personId) { day.people[k].name=name; day.people[k].v4=v4val; day.people[k].pit=pit; break; }
+    }
   } else {
-    day.people.push({ id: nextId(), name, v4: v4val, pit });
+    day.people.push({ id: nextId(), name: name, v4: v4val, pit: pit });
   }
   save(); render(); closeModal('modal-person');
 }
 function deletePerson() {
   if (!confirm('Remove this session?')) return;
-  const sw = data.swings.find(s => s.id === ctx.swId);
-  const day = sw?.days.find(d => d.date === ctx.date);
-  if (day) day.people = day.people.filter(p => p.id !== ctx.personId);
+  var sw = null;
+  for (var i=0; i<data.swings.length; i++) { if (data.swings[i].id===ctx.swId) { sw=data.swings[i]; break; } }
+  var day = null;
+  if (sw) { for (var j=0; j<sw.days.length; j++) { if (sw.days[j].date===ctx.date) { day=sw.days[j]; break; } } }
+  if (day) day.people = day.people.filter(function(p){ return p.id!==ctx.personId; });
   save(); render(); closeModal('modal-person');
 }
 function selPanel(p) {
@@ -349,22 +346,23 @@ function selPanel(p) {
 }
 function saveSwing() {
   if (!selPanelVal) { alert('Select a panel.'); return; }
-  const start = document.getElementById('sw-start').value;
+  var start = document.getElementById('sw-start').value;
   if (!start) { alert('Pick a start date.'); return; }
-  const days = [];
-  for (let i = 0; i < 8; i++) {
+  var days = [];
+  for (var i = 0; i < 8; i++) {
     days.push({ date: addDays(start, i), xero: false, people: [] });
   }
-  const maxId = data.swings.reduce((m,s) => Math.max(m, s.id), 0);
-  data.swings.push({ id: maxId+1, panel: selPanelVal, days });
+  var maxId = 0;
+  data.swings.forEach(function(s){ if (s.id > maxId) maxId = s.id; });
+  data.swings.push({ id: maxId+1, panel: selPanelVal, days: days });
   save(); render(); closeModal('modal-swing');
 }
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(el => {
-  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+document.querySelectorAll('.modal-overlay').forEach(function(el) {
+  el.addEventListener('click', function(e) { if (e.target === el) el.classList.remove('open'); });
 });
-document.getElementById('fab-btn').onclick = () => {
+document.getElementById('fab-btn').onclick = function() {
   selPanelVal = null;
   document.getElementById('pb1').className = 'panel-btn';
   document.getElementById('pb3').className = 'panel-btn';
