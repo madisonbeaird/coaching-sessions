@@ -1,7 +1,8 @@
 {
   "name": "Coaching Sessions",
   "short_name": "Sessions",
-  "start_url": "/",
+  "start_url": "/coaching-sessions/",
+  "scope": "/coaching-sessions/",
   "display": "standalone",
   "background_color": "#0f1923",
   "theme_color": "#0f1923",
