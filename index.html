@@ -34,6 +34,8 @@ body { padding-bottom: env(safe-area-inset-bottom); }
 .gear-btn { background: none; border: none; color: var(--text2); font-size: 21px; padding: 4px; margin-right: -4px; cursor: pointer; display: flex; }
 .gear-btn:active { color: var(--text); }
 .set-note { font-size: 12px; color: var(--text3); line-height: 1.4; }
+.len-link { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin: -4px 0 8px; padding: 8px; background: none; border: none; color: var(--text3); font-size: 12px; cursor: pointer; }
+.len-link:active { color: var(--text2); }
 .swing-list { padding: 12px 12px 100px; display: flex; flex-direction: column; gap: 10px; }
 .swing-card { background: var(--navy2); border: 0.5px solid var(--border); border-radius: 14px; overflow: hidden; }
 .swing-card.active { border-color: var(--border2); }
@@ -149,6 +151,25 @@ body { padding-bottom: env(safe-area-inset-bottom); }
 <div class="swing-list" id="swing-list"></div>
 <button class="fab" id="fab-btn"><i class="ti ti-plus"></i> New swing</button>
 <div class="recap" id="recap"><div class="recap-inner" id="recap-inner"></div></div>
+<div class="modal-overlay" id="modal-length">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>Change swing dates</h2>
+    <div class="form-group">
+      <label>Start date</label>
+      <input type="date" id="len-start">
+    </div>
+    <div class="form-group">
+      <label>Days in this swing</label>
+      <select id="len-days"></select>
+    </div>
+    <p class="set-note">Sessions stay on the dates they were logged. New days are added blank.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-length')">Cancel</button>
+      <button class="btn-save" onclick="saveLength()">Save</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="modal-settings">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -341,6 +362,7 @@ function render() {
       html += '</div>';
     });
     html += '<button class="recap-btn" onclick="openRecap(' + sw.id + ')"><i class="ti ti-layout-list"></i> Swing recap</button>';
+    html += '<button class="len-link" onclick="openLength(' + sw.id + ')"><i class="ti ti-calendar-cog"></i> Change swing dates</button>';
     html += '</div></div>';
   });
   list.innerHTML = html;
@@ -532,6 +554,41 @@ function openSettings() {
   document.getElementById('set-on').value = data.settings.daysOn;
   document.getElementById('set-off').value = data.settings.daysOff;
   openModal('modal-settings');
+}
+function openLength(swId) {
+  var sw = null;
+  for (var i=0; i<data.swings.length; i++) { if (data.swings[i].id===swId) { sw=data.swings[i]; break; } }
+  if (!sw) return;
+  ctx.lenSwId = swId;
+  var el = document.getElementById('len-days');
+  if (!el.options.length) for (var n = 1; n <= 28; n++) el.add(new Option(n + (n === 1 ? ' day' : ' days'), n));
+  el.value = sw.days.length;
+  document.getElementById('len-start').value = sw.days[0].date;
+  openModal('modal-length');
+}
+// Rebuild the swing's days from a new start date and length, keeping existing days (and their sessions) on their dates
+function saveLength() {
+  var sw = null;
+  for (var i=0; i<data.swings.length; i++) { if (data.swings[i].id===ctx.lenSwId) { sw=data.swings[i]; break; } }
+  if (!sw) return;
+  var start = document.getElementById('len-start').value;
+  if (!start) { alert('Pick a start date.'); return; }
+  var n = parseInt(document.getElementById('len-days').value, 10);
+  var end = addDays(start, n - 1);
+  var outside = sw.days.filter(function(d){ return d.people.length && (d.date < start || d.date > end); });
+  if (outside.length) {
+    alert('Can\'t change: these days have sessions and would fall outside the swing: ' + outside.map(function(d){ return fmt(d.date); }).join(', ') + '. Move or remove them first.');
+    return;
+  }
+  var byDate = {};
+  sw.days.forEach(function(d){ byDate[d.date] = d; });
+  var days = [];
+  for (var k = 0; k < n; k++) {
+    var date = addDays(start, k);
+    days.push(byDate[date] || { date: date, xero: false, people: [] });
+  }
+  sw.days = days;
+  save(); render(); closeModal('modal-length');
 }
 function saveSettings() {
   data.settings.daysOn = parseInt(document.getElementById('set-on').value, 10);
